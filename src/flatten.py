@@ -3,17 +3,17 @@ from pathlib import Path
 
 import pandas as pd
 
-RAW_DIR = Path(__file__).resolve().parent.parent / "data" / "raw"
-RAW_FILE = RAW_DIR / "countries_raw.json"
-SUBSET_FILE = RAW_DIR / "countries_subset.json"
-FLAT_FILE = RAW_DIR / "countries_flat.csv"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+RAW_FILE = DATA_DIR / "raw" / "countries_raw.json"
+SUBSET_FILE = DATA_DIR / "interim" / "countries_subset.json"
+FLAT_FILE = DATA_DIR / "interim" / "countries_flat.csv"
 
 FIELDS = ["names", "codes", "region", "subregion", "population", "area",
           "capitals", "languages", "currencies", "borders"]
 
 
 def join_values(items, key):
-    return ", ".join(item[key] for item in items)
+    return "; ".join(item[key] for item in items)
 
 
 raw = pd.read_json(RAW_FILE)
@@ -39,7 +39,7 @@ flat["languages"] = df["languages"].apply(join_values, key="name")
 flat["language_count"] = df["languages"].str.len()
 flat["currencies"] = df["currencies"].apply(join_values, key="code")
 flat["currency_count"] = df["currencies"].str.len()
-flat["borders"] = df["borders"].str.join(", ")
+flat["borders"] = df["borders"].str.join("; ")
 flat["border_count"] = df["borders"].str.len()
 
 flat.to_csv(FLAT_FILE, index=False, encoding="utf-8")

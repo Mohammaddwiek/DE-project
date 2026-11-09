@@ -3,7 +3,7 @@
 **Date:** 2026-11-10
 **Script:** `src/flatten.py` (pandas + json only)
 **Input:** `data/raw/countries_raw.json`
-**Output:** `data/raw/countries_subset.json`, `data/raw/countries_flat.csv`
+**Output:** `data/interim/countries_subset.json`, `data/interim/countries_flat.csv`
 
 ## What was done
 1. **Subset.** We kept only the 10 fields the syllabus needs, plus identification, and saved them to `countries_subset.json`. That file is still nested.
@@ -14,10 +14,11 @@
 ## Decisions
 | Decision | Choice | Reason |
 |---|---|---|
-| How to store lists | **Option A: joined text + count** | One row per country keeps the statistics correct. Option B (explode) would repeat each country's population once per list item, e.g. Jordan ×5 for its 5 borders, which makes sums and averages wrong. Option C (separate tables) is cleaner database design but more complex, and the syllabus asks for one table. |
+| How to store lists | **Option A: joined text + count** | One row per country keeps the statistics correct. Option B (explode) would repeat each country's population once per list item, e.g. Jordan ×5 for its 5 borders, which makes sums and averages wrong. Option C (separate tables) is cleaner database design but more complex. The syllabus asks to flatten into "a usable table", and one row per country is enough for profiling and charts. |
 | Which fields | Only syllabus fields: languages, currencies, borders, population, area, region, subregion, capital. Plus `name`, `alpha_2`, `alpha_3` to identify rows. | Stops `json_normalize` from creating 443 columns. Extras such as gini, coordinates and timezones were left out. |
 | Subset file first | Yes (`countries_subset.json`) | We can inspect the smaller nested data before flattening. |
-| Where to save | `data/raw/`, in separate files | The flat table is not cleaned yet. The original raw file is never changed. |
+| Where to save | `data/interim/` | Derived files are neither raw nor clean. `data/raw/` holds only untouched source data (changed after the teammate review). |
+| List separator | `"; "` | A comma can't be used, because the capital `"Washington, D.C."` contains one (changed after the teammate review). |
 | Which piece of each list | language **name**, currency **code**, capital **name**, borders as alpha-3 codes | Readable and short |
 | Capitals | **All capitals joined + `capital_count`** instead of only the "primary" one | Bolivia, Eswatini, Palestine and South Africa have 2-3 capitals and **none is marked primary**. Keeping only the primary capital would leave their capital empty. |
 
@@ -55,3 +56,16 @@ Missing values when the CSV is read correctly:
 ```
 python src/flatten.py
 ```
+
+## Fixes after teammate review (2026-11-10)
+A teammate reviewed the work. Each point was checked against the files and data before acting:
+
+| Point | Verdict | Action |
+|---|---|---|
+| pandas missing from `requirements.txt` | True. It worked only because pandas was already installed locally. | Added `pandas>=2.0` |
+| `"Washington, D.C."` breaks the capital column | True. Splitting on `", "` gave `['Washington', 'D.C.']`. It was the only value with a comma. | Separator changed to `"; "` for all list columns. Verified that the split count equals the count column for every row. |
+| Notes said "the syllabus asks for one table" | Overstated | Reworded to quote the syllabus ("a usable table") |
+| Lists as joined text might look "not fully flattened" | Judgment call | Kept option A. No extra long tables (team decision). |
+| Derived files in `data/raw/` | Valid convention point | Moved to `data/interim/` |
+| `countries_subset.json` duplicates raw data | True (checked: identical for the 10 fields) | Kept on purpose, so we can inspect the nested subset |
+| README has no run instructions | True | Planned for step 9 |
