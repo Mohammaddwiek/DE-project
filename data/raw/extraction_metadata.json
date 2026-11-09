@@ -1,0 +1,9 @@
+{
+  "extracted_at_utc": "2026-11-09T20:25:58+00:00",
+  "source": "https://api.restcountries.com/countries/v5",
+  "api_version": "v5",
+  "country_count": 254,
+  "requests_made": 3,
+  "page_limit": 100,
+  "fields_omitted": "names.translations"
+}
